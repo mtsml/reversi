@@ -1,5 +1,6 @@
 "use strict";
 
+
 class Vec2 {
     constructor(x, y) {
         this.x = x;
@@ -30,13 +31,18 @@ const diskNames = [
 
 
 function onKeyDown(e) {
+    if (isGameEnd()) {
+        init();
+        return;
+    }
+
     message = '';
 
     switch (e.key) {
-      case 'w': cursorPos.y--; break;
-      case 's': cursorPos.y++; break;
-      case 'a': cursorPos.x--; break;
-      case 'd': cursorPos.x++; break;
+      case 'k': cursorPos.y--; break;
+      case 'j': cursorPos.y++; break;
+      case 'h': cursorPos.x--; break;
+      case 'l': cursorPos.x++; break;
       default: onOtherKeyDown();
     }
 
@@ -53,8 +59,40 @@ function onOtherKeyDown() {
     if (checkCanPlace(turn, cursorPos, false)) {
         checkCanPlace(turn, cursorPos, true);
         board[cursorPos.y][cursorPos.x] = turn;
-        if(isGameEnd) {
 
+        if(isGameEnd()) {
+            let count = [0, 0];
+            for (let i=0; i < boardSize.y; i++) {
+                for (let j=0; j < boardSize.x; j++) {
+                    if (board[i][j] !== diskColor.none) {
+                        count[board[i][j]]++;
+                    }
+                }
+            }
+
+            message =
+                diskNames[diskColor.dark] + ':'
+                + count[diskColor.dark]
+                + ' - '
+                + diskNames[diskColor.light]
+                + count[diskColor.light]
+                + '<br>';
+
+            let winner = diskColor.none;
+            if (count[diskColor.dark] > count[diskColor.light]) {
+                winner = diskColor.dark;
+            } else if (count[diskColor.dark < count[diskColor.light]]) {
+                winner = diskColor.light;
+            }
+
+            if (winner !== diskColor.none) {
+                message += `${diskNames[winner]}の勝ちです。<br>`;
+            } else {
+                message += '引き分けです。<br>';
+            }
+            message += '<br>';
+
+            return;
         }
         takeTurn();
         if (!checkCanPlaceAll(turn)) {
@@ -205,12 +243,13 @@ function draw() {
     }
     html += '<br>';
 
-    message += `${diskNames[turn]}のターンです。<br>`;
-    if(true) {
-      message += `<br>
-        [w, s, a, d]:カーソル移動<br>
-        [その他のキー]:石を置く`;
-    }else {
+    if (!isGameEnd()) {
+        message += `${diskNames[turn]}のターンです。<br>`;
+        message += `<br>
+            [h, j, k, l]:カーソル移動<br>
+            [その他のキー]:石を置く`;
+    } else {
+        message += '何かキーを押して下さい。';
     }
     html += '<br>' + message;
 
